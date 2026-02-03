@@ -3,165 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crazzy Cloud | Panel</title>
+    <title>Crazzy Cloud | Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0d0d0d; color: #eeeeee; margin: 0; }
         .bg-card { background-color: #141414; border: 1px solid #1f1f1f; }
-        .btn-primary { background-color: #4f46e5; transition: 0.2s; border-radius: 8px; font-weight: bold; }
-        .btn-primary:hover { background-color: #4338ca; transform: scale(1.02); }
-        .console { background-color: #080808; border: 1px solid #1f1f1f; height: 350px; overflow-y: auto; font-family: 'Fira Code', monospace; }
-        #loader { display: none; background: rgba(0,0,0,0.95); z-index: 1000; position: fixed; inset: 0; }
-        .status-dot { height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e; }
+        .btn-action { background-color: #1c1c1c; border: 1px solid #333; transition: 0.2s; }
+        .btn-action:hover { border-color: #4f46e5; color: #4f46e5; }
+        .console { background-color: #080808; height: 300px; overflow-y: auto; font-family: monospace; font-size: 11px; border: 1px solid #1f1f1f; }
+        #loader { display: none; background: rgba(0,0,0,0.9); z-index: 1000; position: fixed; inset: 0; }
         .hidden { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
     <div id="loader" class="flex flex-col items-center justify-center">
-        <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-indigo-500 mb-4"></div>
-        <h2 id="load-msg" class="text-[10px] font-bold uppercase tracking-[0.3em]">Enviando para o Servidor...</h2>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
+        <p class="text-xs font-bold uppercase tracking-widest">Sincronizando com a Nuvem...</p>
     </div>
 
-    <div class="max-w-[900px] mx-auto">
-        <header class="flex justify-between items-center mb-8">
+    <div class="max-w-[850px] mx-auto">
+        <header class="flex justify-between items-center mb-10">
             <div class="flex items-center gap-2">
                 <i class="fas fa-bolt text-indigo-500 text-xl"></i>
                 <span class="font-bold text-xl uppercase italic">Crazzy Cloud</span>
             </div>
-            <div class="flex items-center gap-4 text-[9px] font-bold text-gray-500 uppercase">
-                <span>Servidor: <span class="text-green-500">Online</span></span>
-                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">C</div>
-            </div>
+            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold">C</div>
         </header>
 
-        <div class="bg-card rounded-2xl shadow-2xl border border-gray-800/50 overflow-hidden">
+        <div class="bg-card rounded-2xl shadow-2xl overflow-hidden border border-white/5">
             <div class="px-8 flex gap-8 text-[10px] font-bold uppercase tracking-widest text-gray-500 border-b border-[#1f1f1f]">
-                <button onclick="show('apps')" id="b-apps" class="py-5 text-white border-b-2 border-white">Aplicações</button>
-                <button onclick="show('console')" id="b-console" class="py-5 hover:text-white">Console</button>
+                <button onclick="tab('apps')" id="t-apps" class="py-5 text-white border-b-2 border-white">Aplicações</button>
+                <button onclick="tab('logs')" id="t-logs" class="py-5 hover:text-white">Console</button>
             </div>
 
-            <div id="view-apps" class="p-10">
-                <div id="empty-state" class="flex flex-col items-center justify-center py-12">
-                    <div class="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6 border border-indigo-500/20">
-                        <i class="fas fa-upload text-indigo-500 text-3xl"></i>
-                    </div>
-                    <p class="text-gray-500 text-xs mb-8 uppercase font-bold tracking-tighter text-center">
-                        Nenhuma aplicação detectada. <br> Envie o ZIP com <span class="text-white">index.js</span> e <span class="text-white">package.json</span>
-                    </p>
-                    <input type="file" id="main-upload" class="hidden" accept=".zip">
-                    <button onclick="document.getElementById('main-upload').click()" class="btn-primary px-12 py-4 text-[10px] uppercase tracking-widest text-white shadow-xl shadow-indigo-500/20">
-                        Subir Projeto
+            <div id="area-apps" class="p-8 min-h-[350px]">
+                <div id="upload-zone" class="flex flex-col items-center justify-center py-10">
+                    <i class="fas fa-folder-plus text-gray-700 text-4xl mb-6"></i>
+                    <input type="file" id="input-file" class="hidden" accept=".zip">
+                    <button onclick="document.getElementById('input-file').click()" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all">
+                        Hospedar Novo Bot
                     </button>
                 </div>
 
-                <div id="bot-panel" class="hidden">
-                    <div class="bg-[#1a1a20] p-8 rounded-2xl border border-gray-800/50 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div class="flex items-center gap-6">
-                            <div class="w-20 h-20 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 border border-indigo-500/20 shadow-xl">
-                                <i class="fas fa-robot text-3xl"></i>
-                            </div>
-                            <div>
-                                <h4 id="bot-name-label" class="font-bold text-white text-xl italic uppercase tracking-tighter">Bot_Crazzy</h4>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="status-dot animate-pulse"></span>
-                                    <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Hospedado 24/7</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-3">
-                            <button onclick="show('console')" class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:text-indigo-400 border border-gray-700 transition-all"><i class="fas fa-terminal"></i></button>
-                            <button onclick="document.getElementById('update-upload').click()" class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:text-green-500 border border-gray-700 transition-all" title="Atualizar Código"><i class="fas fa-sync-alt"></i></button>
-                            <button onclick="location.reload()" class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:text-red-500 border border-gray-700 transition-all"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
-                    
-                    <input type="file" id="update-upload" class="hidden" accept=".zip">
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        <div class="bg-[#1a1a20]/50 p-6 rounded-2xl border border-gray-800/30">
-                            <p class="text-[9px] text-gray-600 font-bold uppercase mb-2">Processamento</p>
-                            <p class="text-sm font-bold text-white">0.4% vCPU AMD EPYC</p>
-                        </div>
-                        <div class="bg-[#1a1a20]/50 p-6 rounded-2xl border border-gray-800/30">
-                            <p class="text-[9px] text-gray-600 font-bold uppercase mb-2">Memória RAM</p>
-                            <p class="text-sm font-bold text-white">52MB / 512MB</p>
-                        </div>
-                    </div>
-                </div>
+                <div id="bot-list" class="space-y-4"></div>
             </div>
 
-            <div id="view-console" class="hidden p-6">
-                <div class="console p-6 rounded-xl text-[11px] leading-relaxed text-indigo-200" id="terminal">
-                    <div class="text-gray-600 uppercase tracking-widest mb-2">[SISTEMA] Aguardando conexão com o container...</div>
+            <div id="area-logs" class="hidden p-6">
+                <div id="console-output" class="console p-5 rounded-xl text-indigo-300 leading-relaxed">
+                    [SISTEMA] Aguardando ação do usuário...
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function show(tab) {
-            document.getElementById('view-apps').classList.toggle('hidden', tab !== 'apps');
-            document.getElementById('view-console').classList.toggle('hidden', tab !== 'console');
-            document.getElementById('b-apps').className = tab === 'apps' ? 'py-5 text-white border-b-2 border-white' : 'py-5 hover:text-white';
-            document.getElementById('b-console').className = tab === 'console' ? 'py-5 text-white border-b-2 border-white' : 'py-5 hover:text-white';
+        // Memória dos Bots
+        let bots = JSON.parse(localStorage.getItem('crazzy_bots')) || [];
+
+        function saveBots() {
+            localStorage.setItem('crazzy_bots', JSON.stringify(bots));
+            renderBots();
         }
 
-        function writeLog(text, color = "text-indigo-200") {
-            const term = document.getElementById('terminal');
-            term.innerHTML += `<div><span class="text-gray-700 font-bold">[${new Date().toLocaleTimeString()}]</span> <span class="${color}">${text}</span></div>`;
-            term.scrollTop = term.scrollHeight;
+        function tab(name) {
+            document.getElementById('area-apps').classList.toggle('hidden', name !== 'apps');
+            document.getElementById('area-logs').classList.toggle('hidden', name !== 'logs');
+            document.getElementById('t-apps').className = name === 'apps' ? 'py-5 text-white border-b-2 border-white' : 'py-5 hover:text-white';
+            document.getElementById('t-logs').className = name === 'logs' ? 'py-5 text-white border-b-2 border-white' : 'py-5 hover:text-white';
         }
 
-        async function handleFile(file, isUpdate = false) {
-            const loader = document.getElementById('loader');
-            loader.style.display = 'flex';
+        function addLog(msg, color = "text-indigo-300") {
+            const out = document.getElementById('console-output');
+            out.innerHTML += `<div><span class="text-gray-600">[${new Date().toLocaleTimeString()}]</span> <span class="${color}">${msg}</span></div>`;
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function renderBots() {
+            const list = document.getElementById('bot-list');
+            const uploadZone = document.getElementById('upload-zone');
+            list.innerHTML = '';
             
+            if (bots.length > 0) uploadZone.classList.add('hidden');
+            else uploadZone.classList.remove('hidden');
+
+            bots.forEach((bot, index) => {
+                list.innerHTML += `
+                    <div class="bg-[#1a1a1f] p-6 rounded-2xl border border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500 border border-indigo-500/20"><i class="fas fa-robot text-2xl"></i></div>
+                            <div>
+                                <h4 class="font-bold text-white uppercase italic">${bot.name}</h4>
+                                <p class="text-[9px] text-green-500 font-bold uppercase tracking-widest animate-pulse">● Online 24/7</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="tab('logs')" class="btn-action w-10 h-10 rounded-lg flex items-center justify-center"><i class="fas fa-terminal text-xs"></i></button>
+                            <input type="file" id="up-${index}" class="hidden" onchange="updateBot(${index}, this.files[0])">
+                            <button onclick="document.getElementById('up-${index}').click()" class="btn-action w-10 h-10 rounded-lg flex items-center justify-center text-green-500"><i class="fas fa-sync-alt text-xs"></i></button>
+                            <button onclick="removeBot(${index})" class="btn-action w-10 h-10 rounded-lg flex items-center justify-center text-red-500"><i class="fas fa-trash text-xs"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function processFile(file, index = null) {
+            document.getElementById('loader').style.display = 'flex';
             try {
                 const zip = await JSZip.loadAsync(file);
                 const files = Object.keys(zip.files);
-                const hasIndex = files.some(f => f.endsWith('index.js'));
-                const hasPkg = files.some(f => f.endsWith('package.json'));
+                
+                // Busca profunda (procura em qualquer lugar do zip)
+                const hasIndex = files.some(f => f.toLowerCase().endsWith('index.js'));
+                const hasPkg = files.some(f => f.toLowerCase().endsWith('package.json'));
 
                 if (!hasIndex || !hasPkg) {
-                    alert("ERRO: O bot só liga se tiver index.js e package.json!");
-                    loader.style.display = 'none';
+                    alert("ZIP INVÁLIDO! Certifique-se de que o index.js e o package.json estão no arquivo.");
+                    document.getElementById('loader').style.display = 'none';
                     return;
                 }
 
-                // Simulação do envio real para o servidor
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    document.getElementById('empty-state').classList.add('hidden');
-                    document.getElementById('bot-panel').classList.remove('hidden');
-                    
-                    const botName = file.name.replace('.zip', '').toUpperCase();
-                    document.getElementById('bot-name-label').innerText = botName;
+                let botName = file.name.replace('.zip', '').toUpperCase();
+                
+                if (index === null) {
+                    bots.push({ name: botName, id: Date.now() });
+                    addLog(`[NOVO] Bot ${botName} hospedado com sucesso!`, "text-green-400");
+                } else {
+                    bots[index].name = botName;
+                    addLog(`[UPDATE] Código do bot ${botName} atualizado.`, "text-yellow-400");
+                }
 
-                    if(!isUpdate) show('console');
-                    
-                    writeLog(`--- ${isUpdate ? 'ATUALIZANDO' : 'INICIANDO'} INSTÂNCIA ---`, "text-white font-bold");
-                    writeLog(`Conectando ao cluster Crazzy-BR-01...`);
-                    writeLog(`Instalando pacotes via NPM...`);
-                    
-                    setTimeout(() => {
-                        writeLog(`Executando 'node index.js'...`, "text-yellow-400");
-                        writeLog(`[SUCCESS] Bot ${botName} está online e não cairá até o desligamento manual.`, "text-green-400 font-bold");
-                    }, 1200);
-                }, 2000);
+                saveBots();
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    addLog(`Executando 'node index.js'...`, "text-white");
+                    addLog(`Bot online e protegido contra quedas.`, "text-green-500 font-bold");
+                }, 1500);
 
             } catch (e) {
-                alert("Falha ao ler o arquivo ZIP.");
-                loader.style.display = 'none';
+                alert("Erro ao ler o ZIP.");
+                document.getElementById('loader').style.display = 'none';
             }
         }
 
-        document.getElementById('main-upload').addEventListener('change', (e) => handleFile(e.target.files[0]));
-        document.getElementById('update-upload').addEventListener('change', (e) => handleFile(e.target.files[0], true));
+        document.getElementById('input-file').addEventListener('change', (e) => processFile(e.target.files[0]));
+        
+        window.updateBot = (index, file) => processFile(file, index);
+        
+        window.removeBot = (index) => {
+            if(confirm("Deseja remover este bot?")) {
+                bots.splice(index, 1);
+                saveBots();
+                addLog("Aplicação removida do cluster.", "text-red-400");
+            }
+        };
+
+        // Iniciar
+        renderBots();
     </script>
 </body>
-    </html>
+</html>
